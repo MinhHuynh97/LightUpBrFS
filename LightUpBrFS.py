@@ -112,11 +112,6 @@ class Board:
         cell.setBulb()
         self.setLightNewBulb(cell)
         return True
-       
-    
-
-
-            
         
     def duplicated(self):
         newboard=Board(self.size)
@@ -157,16 +152,6 @@ class Black(Cell):
         self.isBlack=True
         self.isNum=num!=-1
         self.num=num
-    def checkAddBulb(self,board):
-        if not self.isNum: return True
-        left=board.lookLeft(self.x, self.y)
-        right=board.lookRight(self.x, self.y)
-        above=board.lookAbove(self.x, self.y)
-        below=board.lookBelow(self.x, self.y)
-        numOfBulbsAround=sum(map(lambda val: 1 if val is not None and not val.isBlack and val.isBulb else 0 ,[left,right,above,below]))
-        return True if (self.isNum and self.num >numOfBulbsAround) else False
-
-    
     
     def checkBulds(self,board):
         if not self.isNum:
@@ -187,8 +172,7 @@ class Black(Cell):
             return whiteCellAround
         else:
             return []
-    
-        
+
         
     def numBulbNeed(self,board):
         if not self.isNum or self.isNum==0:
@@ -255,6 +239,7 @@ def BFS(board):
     ListDetail=[]
     ListAddBud=[]
     k=0
+    print("Loop các ô trắng cạnh ô đen")
     while(True):
         # lan 1
         for j in range(1,8):
@@ -277,10 +262,14 @@ def BFS(board):
                                     break
                             if kq:
                                 ListGeneral.append(new_board)
+                                k+=1
+        print("Lần 1 số loop là : {k}".format(k=k))
         
         # # # lan 2
-        
+        pl=1
         while ListGeneral:
+            
+            k=0
             ListDetail=[]                
             for x in ListGeneral:
                 for j in range(1,8):
@@ -293,7 +282,7 @@ def BFS(board):
                                 new_board=x.duplicated()
                                 
                                 new_board.setNewBlub(new_board.findCell(m[0],m[1]),new_board)
-                                
+                                k+=1
                                 if len(ListDetail)==0:
                                     ListDetail.append(new_board)
                                 else:
@@ -304,6 +293,7 @@ def BFS(board):
                                             break
                                     if kq:
                                         ListDetail.append(new_board)
+                                        
                         else:
                             continue
                                         
@@ -325,41 +315,41 @@ def BFS(board):
                                 break
                         if kq1:
                             ListAddBud.append(h)
-
-            
-            
-           
-        
+            pl+=1
+            print("Lần {pl} số loop :{k} ".format(pl=pl,k=k))
         break
-    for m in ListAddBud:
-        m.printOut()
     
+    print("Loop các ô trắng còn lại")
     while ListAddBud:
+        k=0
         ListGen=[]
         for m in ListAddBud:
             for j in range(1,8):
                 for i in range(1,8):
                     if type(m.findCell(j,i)) is White and  m.findCell(j,i).canAddBulb(m):
                         new_copy=m.duplicated()
+                        k+=1
                         new_copy.setNewBlub(new_copy.findCell(j,i),new_copy)
                         ListGen.append(new_copy)
         ListAddBud=[]
+        pl+=1
+        print("Lần {pl} số loop là : {k}".format(pl=pl,k=k))
         for k in ListGen:
             ListAddBud.append(k)
             if k.checkIsGoal():
-                k.printOut()
-                return True
-            
+                
+                return True,k
+    return False,[]     
 
 
 def main():
-    inputBoard=[["w", "-1", "w", "0", "w", "w", "w"],
-                ["w", "w", "w", "w", "w", "w", "0"],
+    inputBoard=[["w", "w", "w", "-1", "w", "w", "w"],
+                ["w", "2", "w", "0", "w", "-1", "w"],
                 ["w", "w", "w", "w", "w", "w", "w"],
-                ["3", "w", "w", "w", "w", "w", "-1"],
+                ["0", "0", "w", "w", "w", "0", "-1"],
                 ["w", "w", "w", "w", "w", "w", "w"],
-                ["-1", "w", "w", "w", "w", "w", "w"],
-                ["w", "w", "w", "1", "w", "1", "w"]]
+                ["w", "-1", "w", "0", "w", "2", "w"],
+                ["w", "w", "w", "1", "w", "w", "w"]]
     print(len(inputBoard))
     board=Board(len(inputBoard))
     for y in range(0,len(inputBoard)):
@@ -370,7 +360,11 @@ def main():
     board.setRemainWhite()
     start = time.time()
     board.printOut()
-    BFS(board)
+    goal=BFS(board)
+    if goal[0]:
+       goal[1].printOut()
+    else:
+        print("Không giải được theo đề bài") 
     end=time.time()
     print("Thời gian chạy : ",end-start)
     process = psutil.Process(os.getpid())
